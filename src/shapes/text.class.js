@@ -943,7 +943,22 @@
       var lineHeight, height = 0;
       for (var i = 0, len = this._textLines.length; i < len; i++) {
         lineHeight = this.getHeightOfLine(i);
-        height += (i === len - 1 ? lineHeight / this.lineHeight : lineHeight);
+        if (this._textLines.length === 1) {
+          var ctx = fabric.util.createCanvasElement().getContext('2d');
+          var decl = this.getCompleteStyleDeclaration(i, 0);
+          // get sub decimal resolution by multiplying by 10
+          decl.fontSize *= 10;
+          ctx.font = this._getFontDeclaration(decl);
+          var metric = ctx.measureText("H");
+          lineHeight -= (
+            lineHeight / this.lineHeight * this._fontSizeFraction   // lineHeight offset to baseline
+            - ( // calculate space that is above ascend
+              lineHeight / this.lineHeight * (1 - this._fontSizeFraction)
+              - metric.actualBoundingBoxAscent / 10
+            )
+          ) * this.lineHeight;
+        }
+        height += i === len - 1 ? lineHeight / this.lineHeight : lineHeight;
       }
       return height;
     },
